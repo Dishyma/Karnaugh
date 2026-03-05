@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapas de Karnaugh — Guía de referencia</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #f4f2ee;
+    --surface:   #ffffff;
+    --border:    #ddd9d0;
+    --text:      #1c1a16;
+    --muted:     #7a7670;
+    --accent:    #4a5568;
+    --accent-lt: #edf0f4;
+    --mono:      'IBM Plex Mono', monospace;
+    --serif:     'Source Serif 4', Georgia, serif;
+
+    /* group colors */
+    --g1: #c8e6c9; --g1b: #2e7d32;
+    --g2: #bbdefb; --g2b: #1565c0;
+    --g3: #ffe0b2; --g3b: #e65100;
+    --g4: #f8bbd0; --g4b: #880e4f;
+    --g5: #e1bee7; --g5b: #6a1b9a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    font-size: 15.5px;
+    line-height: 1.75;
+    padding: 2.5rem 1rem 5rem;
+  }
+
+  .page { max-width: 860px; margin: 0 auto; }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    border-bottom: 2px solid var(--text);
+    padding-bottom: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  header h1 {
+    font-family: var(--mono);
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  header p { color: var(--muted); font-size: 0.9rem; font-family: var(--mono); }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1rem 1.4rem;
+    margin-bottom: 2rem;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+  }
+  .toc-title { font-weight: 600; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .toc ol { padding-left: 1.2rem; }
+  .toc li { margin-bottom: 0.2rem; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* ── Section ── */
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.8rem 2rem;
+    margin-bottom: 1.4rem;
+    scroll-margin-top: 1rem;
+  }
+  section h2 {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  section h2 .num {
+    background: var(--text);
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 0.1em 0.45em;
+    border-radius: 3px;
+  }
+  section h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  section h3 {
+    font-family: var(--serif);
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 1.6rem 0 0.5rem;
+    color: var(--text);
+  }
+  section h3:first-of-type { margin-top: 0.2rem; }
+
+  section p { margin-bottom: 0.8rem; }
+  section p:last-child { margin-bottom: 0; }
+
+  /* ── Callout ── */
+  .callout {
+    border-radius: 4px;
+    padding: 0.8rem 1.1rem;
+    margin: 0.9rem 0;
+    font-size: 0.9rem;
+    border-left: 3px solid;
+    font-family: var(--serif);
+  }
+  .callout.info  { background: var(--accent-lt); border-color: var(--accent); }
+  .callout.rule  { background: #fdf6e3; border-color: #b8860b; }
+  .callout.ok    { background: #e8f5e9; border-color: #2e7d32; }
+
+  /* ── Tables ── */
+  .tbl-wrap { overflow-x: auto; margin: 0.8rem 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th {
+    background: #f0ece6;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-align: center;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  td {
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--border);
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 0.88rem;
+  }
+  td.one  { background: #e8f5e9; color: #1b5e20; font-weight: 600; }
+  td.zero { background: #fff; color: var(--muted); }
+  td.dc   { background: #fafafa; color: #999; font-style: italic; }
+  td.label { font-family: var(--serif); text-align: left; background: #fafaf8; color: var(--text); font-size: 0.86rem; }
+
+  /* ── Karnaugh map grid ── */
+  .kmap-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    margin: 1rem 0;
+    overflow-x: auto;
+  }
+  .kmap-title {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .kmap-container { position: relative; display: inline-block; }
+
+  /* column/row headers */
+  .kmap-col-label {
+    display: flex;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  .kmap-row-wrap { display: flex; align-items: center; }
+  .kmap-row-label {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    margin-right: 0.4rem;
+    white-space: nowrap;
+  }
+
+  /* the grid itself */
+  .kmap {
+    display: grid;
+    border: 2px solid var(--text);
+  }
+  .kmap.k2 { grid-template-columns: 28px repeat(2, 52px); grid-template-rows: 28px repeat(2, 52px); }
+  .kmap.k3 { grid-template-columns: 28px repeat(4, 52px); grid-template-rows: 28px repeat(2, 52px); }
+  .kmap.k4 { grid-template-columns: 28px repeat(4, 56px); grid-template-rows: 28px repeat(4, 56px); }
+
+  .kmap-hdr {
+    background: #f0ece6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .kmap-hdr.corner {
+    background: #e8e4dc;
+    font-size: 0.7rem;
+    color: #999;
+  }
+  .kmap-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 600;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    cursor: default;
+    transition: background 0.15s;
+  }
+  .kmap-cell.v1 { color: #1b5e20; background: #f1f8f2; }
+  .kmap-cell.v0 { color: #aaa; background: #fff; }
+  .kmap-cell.vx { color: #bbb; background: #fafafa; font-style: italic; }
+
+  /* group overlays */
+  .kmap-cell.g1 { background: var(--g1) !important; color: var(--g1b) !important; }
+  .kmap-cell.g2 { background: var(--g2) !important; color: var(--g2b) !important; }
+  .kmap-cell.g3 { background: var(--g3) !important; color: var(--g3b) !important; }
+  .kmap-cell.g4 { background: var(--g4) !important; color: var(--g4b) !important; }
+
+  /* minterm index */
+  .kmap-cell .midx {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    font-size: 0.58rem;
+    color: #bbb;
+    font-weight: 400;
+  }
+
+  /* ── Expression display ── */
+  .expr {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    background: #f0ece6;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.4rem 0.9rem;
+    margin: 0.5rem 0;
+    color: var(--text);
+  }
+  .expr .term1 { color: var(--g1b); font-weight: 600; }
+  .expr .term2 { color: var(--g2b); font-weight: 600; }
+  .expr .term3 { color: var(--g3b); font-weight: 600; }
+  .expr .term4 { color: var(--g4b); font-weight: 600; }
+
+  /* ── Group legend ── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.8rem 0;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+  .legend-swatch {
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+
+  /* ── Steps ── */
+  .steps { list-style: none; counter-reset: step; margin: 0.6rem 0 0.8rem; }
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.55rem;
+    font-size: 0.93rem;
+  }
+  .steps li::before {
+    content: counter(step);
+    min-width: 1.55rem; height: 1.55rem;
+    background: var(--text); color: #fff;
+    border-radius: 50%;
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 0.15rem;
+  }
+
+  /* ── Truth table + map side by side ── */
+  .side-by-side {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.5rem;
+    align-items: start;
+    margin: 0.8rem 0;
+  }
+
+  /* ── Rules box ── */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin: 0.8rem 0;
+  }
+  .rule-card {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.8rem 1rem;
+    font-size: 0.88rem;
+  }
+  .rule-card strong { font-family: var(--mono); display: block; margin-bottom: 0.2rem; color: var(--accent); }
+
+  code {
+    font-family: var(--mono);
+    background: #f0ece6;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 2.5rem;
+    font-family: var(--mono);
+  }
+
+  @media (max-width: 600px) {
+    .side-by-side { grid-template-columns: 1fr; }
+    .rules-grid { grid-template-columns: 1fr; }
+    section { padding: 1.2rem 1.1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <h1>Mapas de Karnaugh</h1>
+  <p>Guía de referencia — Simplificación de funciones booleanas</p>
+</header>
+
+<!-- TOC -->
+<nav class="toc">
+  <div class="toc-title">Contenido</div>
+  <ol>
+    <li><a href="#s1">Introducción y fundamentos</a></li>
+    <li><a href="#s2">Reglas para agrupar celdas</a></li>
+    <li><a href="#s3">Mapa de 2 variables</a></li>
+    <li><a href="#s4">Mapa de 3 variables</a></li>
+    <li><a href="#s5">Mapa de 4 variables</a></li>
+    <li><a href="#s6">Ejemplos resueltos</a></li>
+  </ol>
+</nav>
+
+<!-- 1. Introducción -->
+<section id="s1">
+  <h2><span class="num">1</span> Introducción y fundamentos</h2>
+  <p>Un <strong>mapa de Karnaugh</strong> (K-map) es una herramienta gráfica que permite simplificar funciones booleanas de forma visual, sin necesidad de aplicar álgebra de Boole paso a paso. Fue desarrollado por Maurice Karnaugh en 1953.</p>
+  <p>La idea central es organizar los mintérminos de una función en una cuadrícula de modo que las celdas adyacentes difieran en <strong>exactamente un bit</strong>. Al agrupar celdas con valor <code>1</code>, se eliminan variables y se obtiene una expresión mínima en forma de <strong>Suma de Productos (SOP)</strong>.</p>
+
+  <div class="callout info">
+    <strong>Minterm:</strong> cada fila de una tabla de verdad corresponde a un minterm, identificado por su número decimal. Por ejemplo, con variables A y B, el minterm 2 corresponde a <code>AB' </code> (A=1, B=0).
+  </div>
+
+  <h3>Proceso general</h3>
+  <ol class="steps">
+    <li>Construir o leer la tabla de verdad de la función.</li>
+    <li>Trasladar los valores <code>1</code> de la tabla al mapa de Karnaugh en la celda correspondiente.</li>
+    <li>Agrupar las celdas con <code>1</code> siguiendo las reglas de agrupación.</li>
+    <li>Para cada grupo, identificar las variables que <strong>no cambian</strong> dentro del grupo: esas forman el término producto.</li>
+    <li>Sumar todos los términos producto obtenidos.</li>
+  </ol>
+</section>
+
+<!-- 2. Reglas -->
+<section id="s2">
+  <h2><span class="num">2</span> Reglas para agrupar celdas</h2>
+
+  <div class="rules-grid">
+    <div class="rule-card">
+      <strong>Tamano de grupos</strong>
+      Solo se permiten grupos de 1, 2, 4, 8 o 16 celdas (potencias de 2).
+    </div>
+    <div class="rule-card">
+      <strong>Solo unos</strong>
+      Los grupos solo pueden contener celdas con valor <code>1</code> (o don't care).
+    </div>
+    <div class="rule-card">
+      <strong>Adyacencia</strong>
+      Las celdas deben ser adyacentes: horizontal, vertical o en los bordes opuestos del mapa (el mapa es toroidal).
+    </div>
+    <div class="rule-card">
+      <strong>Maximizar tamano</strong>
+      Siempre se deben formar los grupos mas grandes posibles. Un grupo mas grande elimina mas variables.
+    </div>
+    <div class="rule-card">
+      <strong>Cubrir todos los unos</strong>
+      Cada celda con <code>1</code> debe quedar cubierta por al menos un grupo.
+    </div>
+    <div class="rule-card">
+      <strong>Superposicion permitida</strong>
+      Una misma celda puede pertenecer a varios grupos distintos.
+    </div>
+  </div>
+
+  <div class="callout rule">
+    <strong>Regla clave:</strong> un grupo de <em>n</em> celdas elimina exactamente <em>log<sub>2</sub>(n)</em> variables. Un grupo de 2 elimina 1 variable, un grupo de 4 elimina 2, un grupo de 8 elimina 3.
+  </div>
+
+  <h3>Orden de Gray en los encabezados</h3>
+  <p>Los encabezados de filas y columnas siguen el <strong>codigo Gray</strong>: 00 → 01 → 11 → 10. Este orden garantiza que celdas adyacentes difieran en un solo bit. Es un error comun usar el orden binario natural (00 → 01 → 10 → 11).</p>
+</section>
+
+<!-- 3. Mapa 2 variables -->
+<section id="s3">
+  <h2><span class="num">3</span> Mapa de 2 variables</h2>
+  <p>Con 2 variables (A, B) hay 4 minterminos: m0 a m3. El mapa tiene 2 filas y 2 columnas.</p>
+
+  <div class="side-by-side">
+    <div>
+      <div class="kmap-title">Estructura del mapa</div>
+      <div class="kmap-container">
+        <div class="kmap k2">
+          <div class="kmap-hdr corner">A \ B</div>
+          <div class="kmap-hdr">0</div>
+          <div class="kmap-hdr">1</div>
+
+          <div class="kmap-hdr">0</div>
+          <div class="kmap-cell v0"><span class="midx">m0</span>0</div>
+          <div class="kmap-cell v0"><span class="midx">m1</span>0</div>
+
+          <div class="kmap-hdr">1</div>
+          <div class="kmap-cell v0"><span class="midx">m2</span>0</div>
+          <div class="kmap-cell v0"><span class="midx">m3</span>0</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p>Cada celda corresponde a una combinacion de valores de A y B. El numero pequeno en la esquina es el numero de minterm (en decimal).</p>
+      <div class="callout info">
+        <strong>m0</strong> = A'B' &nbsp;|&nbsp; <strong>m1</strong> = A'B &nbsp;|&nbsp; <strong>m2</strong> = AB' &nbsp;|&nbsp; <strong>m3</strong> = AB
+      </div>
+    </div>
+  </div>
+
+  <h3>Ejemplo — F(A,B) = &Sigma;m(1, 2, 3)</h3>
+  <div class="side-by-side">
+    <div>
+      <div class="kmap-title">Mapa con grupos</div>
+      <div class="kmap-container">
+        <div class="kmap k2">
+          <div class="kmap-hdr corner">A \ B</div>
+          <div class="kmap-hdr">0</div>
+          <div class="kmap-hdr">1</div>
+
+          <div class="kmap-hdr">0</div>
+          <div class="kmap-cell v0"><span class="midx">m0</span>0</div>
+          <div class="kmap-cell g2"><span class="midx">m1</span>1</div>
+
+          <div class="kmap-hdr">1</div>
+          <div class="kmap-cell g1"><span class="midx">m2</span>1</div>
+          <div class="kmap-cell g1 g2"><span class="midx">m3</span>1</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--g1)"></div> Grupo verde: m2, m3 → A no cambia (=1), B varía → término: <strong>A</strong></div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--g2)"></div> Grupo azul: m1, m3 → B no cambia (=1), A varía → término: <strong>B</strong></div>
+      </div>
+      <p>Resultado:</p>
+      <div class="expr"><span class="term1">A</span> + <span class="term2">B</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Mapa 3 variables -->
+<section id="s4">
+  <h2><span class="num">4</span> Mapa de 3 variables</h2>
+  <p>Con 3 variables (A, B, C) hay 8 minterminos: m0 a m7. El mapa tiene 2 filas (variable A) y 4 columnas (variables B y C en codigo Gray: 00, 01, 11, 10).</p>
+
+  <div class="kmap-title">Estructura del mapa de 3 variables</div>
+  <div class="kmap-container">
+    <div class="kmap k3">
+      <div class="kmap-hdr corner">A \ BC</div>
+      <div class="kmap-hdr">00</div>
+      <div class="kmap-hdr">01</div>
+      <div class="kmap-hdr">11</div>
+      <div class="kmap-hdr">10</div>
+
+      <div class="kmap-hdr">0</div>
+      <div class="kmap-cell v0"><span class="midx">m0</span>0</div>
+      <div class="kmap-cell v0"><span class="midx">m1</span>0</div>
+      <div class="kmap-cell v0"><span class="midx">m3</span>0</div>
+      <div class="kmap-cell v0"><span class="midx">m2</span>0</div>
+
+      <div class="kmap-hdr">1</div>
+      <div class="kmap-cell v0"><span class="midx">m4</span>0</div>
+      <div class="kmap-cell v0"><span class="midx">m5</span>0</div>
+      <div class="kmap-cell v0"><span class="midx">m7</span>0</div>
+      <div class="kmap-cell v0"><span class="midx">m6</span>0</div>
+    </div>
+  </div>
+
+  <div class="callout rule" style="margin-top:0.9rem">
+    Atencion: los minterminos NO estan en orden natural. La columna BC=11 corresponde a m3 y m7, y BC=10 corresponde a m2 y m6. Esto es consecuencia del codigo Gray.
+  </div>
+
+  <h3>Ejemplo 1 — F(A,B,C) = &Sigma;m(0, 2, 4, 6)</h3>
+  <div class="side-by-side">
+    <div>
+      <div class="kmap-title">Mapa con grupo</div>
+      <div class="kmap k3">
+        <div class="kmap-hdr corner">A \ BC</div>
+        <div class="kmap-hdr">00</div>
+        <div class="kmap-hdr">01</div>
+        <div class="kmap-hdr">11</div>
+        <div class="kmap-hdr">10</div>
+
+        <div class="kmap-hdr">0</div>
+        <div class="kmap-cell g1"><span class="midx">m0</span>1</div>
+        <div class="kmap-cell v0"><span class="midx">m1</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m3</span>0</div>
+        <div class="kmap-cell g1"><span class="midx">m2</span>1</div>
+
+        <div class="kmap-hdr">1</div>
+        <div class="kmap-cell g1"><span class="midx">m4</span>1</div>
+        <div class="kmap-cell v0"><span class="midx">m5</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m7</span>0</div>
+        <div class="kmap-cell g1"><span class="midx">m6</span>1</div>
+      </div>
+    </div>
+    <div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--g1)"></div> Grupo verde (4 celdas): m0, m2, m4, m6</div>
+      </div>
+      <p>En estas 4 celdas: A varía (0 y 1), B varía (0 y 1), C es siempre <strong>0</strong>. Solo C no varía.</p>
+      <p>Resultado:</p>
+      <div class="expr"><span class="term1">C'</span></div>
+    </div>
+  </div>
+
+  <h3>Ejemplo 2 — F(A,B,C) = &Sigma;m(1, 3, 5, 7)</h3>
+  <div class="side-by-side">
+    <div>
+      <div class="kmap-title">Mapa con grupo</div>
+      <div class="kmap k3">
+        <div class="kmap-hdr corner">A \ BC</div>
+        <div class="kmap-hdr">00</div>
+        <div class="kmap-hdr">01</div>
+        <div class="kmap-hdr">11</div>
+        <div class="kmap-hdr">10</div>
+
+        <div class="kmap-hdr">0</div>
+        <div class="kmap-cell v0"><span class="midx">m0</span>0</div>
+        <div class="kmap-cell g2"><span class="midx">m1</span>1</div>
+        <div class="kmap-cell g2"><span class="midx">m3</span>1</div>
+        <div class="kmap-cell v0"><span class="midx">m2</span>0</div>
+
+        <div class="kmap-hdr">1</div>
+        <div class="kmap-cell v0"><span class="midx">m4</span>0</div>
+        <div class="kmap-cell g2"><span class="midx">m5</span>1</div>
+        <div class="kmap-cell g2"><span class="midx">m7</span>1</div>
+        <div class="kmap-cell v0"><span class="midx">m6</span>0</div>
+      </div>
+    </div>
+    <div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--g2)"></div> Grupo azul (4 celdas): m1, m3, m5, m7</div>
+      </div>
+      <p>En estas 4 celdas: A varía, B varía, C es siempre <strong>1</strong>.</p>
+      <p>Resultado:</p>
+      <div class="expr"><span class="term2">C</span></div>
+    </div>
+  </div>
+
+  <h3>Ejemplo 3 — F(A,B,C) = &Sigma;m(0, 1, 4, 5)</h3>
+  <div class="side-by-side">
+    <div>
+      <div class="kmap-title">Mapa con grupo</div>
+      <div class="kmap k3">
+        <div class="kmap-hdr corner">A \ BC</div>
+        <div class="kmap-hdr">00</div>
+        <div class="kmap-hdr">01</div>
+        <div class="kmap-hdr">11</div>
+        <div class="kmap-hdr">10</div>
+
+        <div class="kmap-hdr">0</div>
+        <div class="kmap-cell g3"><span class="midx">m0</span>1</div>
+        <div class="kmap-cell g3"><span class="midx">m1</span>1</div>
+        <div class="kmap-cell v0"><span class="midx">m3</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m2</span>0</div>
+
+        <div class="kmap-hdr">1</div>
+        <div class="kmap-cell g3"><span class="midx">m4</span>1</div>
+        <div class="kmap-cell g3"><span class="midx">m5</span>1</div>
+        <div class="kmap-cell v0"><span class="midx">m7</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m6</span>0</div>
+      </div>
+    </div>
+    <div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--g3)"></div> Grupo naranja (4 celdas): m0, m1, m4, m5</div>
+      </div>
+      <p>A varía, C varía, B es siempre <strong>0</strong>.</p>
+      <p>Resultado:</p>
+      <div class="expr"><span class="term3">B'</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Mapa 4 variables -->
+<section id="s5">
+  <h2><span class="num">5</span> Mapa de 4 variables</h2>
+  <p>Con 4 variables (A, B, C, D) hay 16 minterminos: m0 a m15. El mapa tiene 4 filas (AB en codigo Gray) y 4 columnas (CD en codigo Gray).</p>
+
+  <div class="kmap-title">Estructura del mapa de 4 variables</div>
+  <div style="overflow-x:auto; margin-bottom:0.5rem">
+  <div class="kmap k4">
+    <div class="kmap-hdr corner">AB \ CD</div>
+    <div class="kmap-hdr">00</div><div class="kmap-hdr">01</div><div class="kmap-hdr">11</div><div class="kmap-hdr">10</div>
+
+    <div class="kmap-hdr">00</div>
+    <div class="kmap-cell v0"><span class="midx">m0</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m1</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m3</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m2</span>–</div>
+
+    <div class="kmap-hdr">01</div>
+    <div class="kmap-cell v0"><span class="midx">m4</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m5</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m7</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m6</span>–</div>
+
+    <div class="kmap-hdr">11</div>
+    <div class="kmap-cell v0"><span class="midx">m12</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m13</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m15</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m14</span>–</div>
+
+    <div class="kmap-hdr">10</div>
+    <div class="kmap-cell v0"><span class="midx">m8</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m9</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m11</span>–</div>
+    <div class="kmap-cell v0"><span class="midx">m10</span>–</div>
+  </div>
+  </div>
+
+  <div class="callout rule">
+    <strong>Adyacencia en los bordes:</strong> la primera y la ultima fila son adyacentes (se "tocan" por arriba y abajo), y la primera y la ultima columna tambien lo son (se tocan por izquierda y derecha). El mapa se comporta como un toro.
+  </div>
+</section>
+
+<!-- 6. Ejemplos resueltos -->
+<section id="s6">
+  <h2><span class="num">6</span> Ejemplos resueltos — 4 variables</h2>
+
+  <!-- Ejemplo A -->
+  <h3>Ejemplo A — F = &Sigma;m(0, 1, 2, 3, 4, 5, 6, 7)</h3>
+  <p>Los ocho minterminos con A=0 estan activos.</p>
+  <div class="side-by-side">
+    <div style="overflow-x:auto">
+      <div class="kmap k4">
+        <div class="kmap-hdr corner">AB \ CD</div>
+        <div class="kmap-hdr">00</div><div class="kmap-hdr">01</div><div class="kmap-hdr">11</div><div class="kmap-hdr">10</div>
+
+        <div class="kmap-hdr">00</div>
+        <div class="kmap-cell g1"><span class="midx">m0</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m1</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m3</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m2</span>1</div>
+
+        <div class="kmap-hdr">01</div>
+        <div class="kmap-cell g1"><span class="midx">m4</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m5</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m7</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m6</span>1</div>
+
+        <div class="kmap-hdr">11</div>
+        <div class="kmap-cell v0"><span class="midx">m12</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m13</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m15</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m14</span>0</div>
+
+        <div class="kmap-hdr">10</div>
+        <div class="kmap-cell v0"><span class="midx">m8</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m9</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m11</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m10</span>0</div>
+      </div>
+    </div>
+    <div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--g1)"></div> Grupo verde (8 celdas): filas AB=00 y AB=01</div>
+      </div>
+      <p>En estas 8 celdas: A es siempre <strong>0</strong>, B varía, C varía, D varía. Solo A no varía.</p>
+      <div class="expr"><span class="term1">A'</span></div>
+    </div>
+  </div>
+
+  <!-- Ejemplo B -->
+  <h3>Ejemplo B — F = &Sigma;m(0, 2, 8, 10)</h3>
+  <p>Las cuatro esquinas del mapa estan activas. Este es el caso clasico de adyacencia en bordes opuestos.</p>
+  <div class="side-by-side">
+    <div style="overflow-x:auto">
+      <div class="kmap k4">
+        <div class="kmap-hdr corner">AB \ CD</div>
+        <div class="kmap-hdr">00</div><div class="kmap-hdr">01</div><div class="kmap-hdr">11</div><div class="kmap-hdr">10</div>
+
+        <div class="kmap-hdr">00</div>
+        <div class="kmap-cell g1"><span class="midx">m0</span>1</div>
+        <div class="kmap-cell v0"><span class="midx">m1</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m3</span>0</div>
+        <div class="kmap-cell g1"><span class="midx">m2</span>1</div>
+
+        <div class="kmap-hdr">01</div>
+        <div class="kmap-cell v0"><span class="midx">m4</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m5</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m7</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m6</span>0</div>
+
+        <div class="kmap-hdr">11</div>
+        <div class="kmap-cell v0"><span class="midx">m12</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m13</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m15</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m14</span>0</div>
+
+        <div class="kmap-hdr">10</div>
+        <div class="kmap-cell g1"><span class="midx">m8</span>1</div>
+        <div class="kmap-cell v0"><span class="midx">m9</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m11</span>0</div>
+        <div class="kmap-cell g1"><span class="midx">m10</span>1</div>
+      </div>
+    </div>
+    <div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--g1)"></div> Grupo verde (4 celdas): m0, m2, m8, m10 — las 4 esquinas</div>
+      </div>
+      <p>B varía, D varía. A es siempre 0 o 1 pero... A varía. C varía. Solo <strong>B=0</strong> y <strong>D=0</strong> se mantienen constantes en todos.</p>
+      <div class="expr"><span class="term1">B'D'</span></div>
+    </div>
+  </div>
+
+  <!-- Ejemplo C -->
+  <h3>Ejemplo C — F = &Sigma;m(0, 1, 3, 2, 8, 9, 11, 10)</h3>
+  <p>Dos grupos de 4 formando un grupo de 8 que abarca las filas AB=00 y AB=10 completas.</p>
+  <div class="side-by-side">
+    <div style="overflow-x:auto">
+      <div class="kmap k4">
+        <div class="kmap-hdr corner">AB \ CD</div>
+        <div class="kmap-hdr">00</div><div class="kmap-hdr">01</div><div class="kmap-hdr">11</div><div class="kmap-hdr">10</div>
+
+        <div class="kmap-hdr">00</div>
+        <div class="kmap-cell g1"><span class="midx">m0</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m1</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m3</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m2</span>1</div>
+
+        <div class="kmap-hdr">01</div>
+        <div class="kmap-cell v0"><span class="midx">m4</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m5</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m7</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m6</span>0</div>
+
+        <div class="kmap-hdr">11</div>
+        <div class="kmap-cell v0"><span class="midx">m12</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m13</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m15</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m14</span>0</div>
+
+        <div class="kmap-hdr">10</div>
+        <div class="kmap-cell g1"><span class="midx">m8</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m9</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m11</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m10</span>1</div>
+      </div>
+    </div>
+    <div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--g1)"></div> Grupo verde (8 celdas): filas AB=00 y AB=10 — adyacentes por el borde</div>
+      </div>
+      <p>C varía, D varía. A varía. Solo <strong>B=0</strong> se mantiene en las 8 celdas.</p>
+      <div class="expr"><span class="term1">B'</span></div>
+    </div>
+  </div>
+
+  <!-- Ejemplo D: dos grupos -->
+  <h3>Ejemplo D — F = &Sigma;m(0, 1, 5, 4, 10, 11, 15, 14) — dos grupos</h3>
+  <div class="side-by-side">
+    <div style="overflow-x:auto">
+      <div class="kmap k4">
+        <div class="kmap-hdr corner">AB \ CD</div>
+        <div class="kmap-hdr">00</div><div class="kmap-hdr">01</div><div class="kmap-hdr">11</div><div class="kmap-hdr">10</div>
+
+        <div class="kmap-hdr">00</div>
+        <div class="kmap-cell g1"><span class="midx">m0</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m1</span>1</div>
+        <div class="kmap-cell v0"><span class="midx">m3</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m2</span>0</div>
+
+        <div class="kmap-hdr">01</div>
+        <div class="kmap-cell g1"><span class="midx">m4</span>1</div>
+        <div class="kmap-cell g1"><span class="midx">m5</span>1</div>
+        <div class="kmap-cell v0"><span class="midx">m7</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m6</span>0</div>
+
+        <div class="kmap-hdr">11</div>
+        <div class="kmap-cell v0"><span class="midx">m12</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m13</span>0</div>
+        <div class="kmap-cell g2"><span class="midx">m15</span>1</div>
+        <div class="kmap-cell g2"><span class="midx">m14</span>1</div>
+
+        <div class="kmap-hdr">10</div>
+        <div class="kmap-cell v0"><span class="midx">m8</span>0</div>
+        <div class="kmap-cell v0"><span class="midx">m9</span>0</div>
+        <div class="kmap-cell g2"><span class="midx">m11</span>1</div>
+        <div class="kmap-cell g2"><span class="midx">m10</span>1</div>
+      </div>
+    </div>
+    <div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--g1)"></div> Grupo verde (4): m0, m1, m4, m5 → A=0, C=0 constantes → <strong>A'C'</strong></div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--g2)"></div> Grupo azul (4): m10, m11, m14, m15 → A=1, C=1 constantes → <strong>AC</strong></div>
+      </div>
+      <p>Resultado: suma de los dos terminos.</p>
+      <div class="expr"><span class="term1">A'C'</span> + <span class="term2">AC</span></div>
+      <div class="callout ok" style="margin-top:0.7rem">Esta expresion corresponde a la equivalencia: <strong>A XNOR C</strong>, es decir, la salida es 1 cuando A y C tienen el mismo valor.</div>
+    </div>
+  </div>
+</section>
+
+<footer>karnaugh.html &nbsp;·&nbsp; material de apoyo academico</footer>
+
+</div>
+</body>
+</html>
